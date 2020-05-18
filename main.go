@@ -1,67 +1,26 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
 
-// define quiz
-// ask input
-// compare result
-
-type Option string
-
-type Quiz struct {
-	Question      string
-	Options       []Option
-	CorrectOption int
-}
+	"github.com/hive-repo/quiz/helper"
+)
 
 func main() {
 
-	quizes := []Quiz{
-		Quiz{
-			Question: "What is the Capital city of Nepal?",
-			Options: []Option{
-				"Delhi",
-				"Dhaka",
-				"Kathmandu",
-				"Nepalgunj",
-			},
-			CorrectOption: 2,
-		},
-		Quiz{
-			Question: "Which is the biggest lake of Nepal?",
-			Options: []Option{
-				"Rara",
-				"Foksundo",
-				"Fewatal",
-				"Se Foksundo",
-			},
-			CorrectOption: 0,
-		},
-	}
+	qm := helper.Manager{}
+
+	quizes := qm.BuildQuiz()
 
 	for _, q := range quizes {
-		fmt.Println(q.Question)
-		fmt.Println()
 
-		// print options
-		for k, v := range q.Options {
-			fmt.Printf("%d. %s\n", k+1, v)
-		}
+		q.Display()
+		q.PromptAns()
 
-		fmt.Println()
-		fmt.Print("Answer: ")
-
-		var ans int
-		// ask ans
-		fmt.Scan(&ans)
-
-		// check ans
-
-		if ans == q.CorrectOption {
+		if q.IsCorrect() {
 			fmt.Println("Correct")
 		} else {
 			fmt.Println("Incorrect")
 		}
 	}
-
 }
