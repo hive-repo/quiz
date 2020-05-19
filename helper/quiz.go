@@ -34,3 +34,12 @@ func (q Quiz) PromptAns() {
 func (q Quiz) IsCorrect() bool {
 	return q.ans == q.CorrectOption
 }
+
+// PromptNext prompts next action
+func (q Quiz) PromptNext() string {
+	var next string
+	fmt.Printf("NEXT(n)\t\tMASTER(m)\tMASK(u)\t\tVIEW(v)\t\tQUIT(q): ")
+	fmt.Scan(&next)
+
+	return next
+}
