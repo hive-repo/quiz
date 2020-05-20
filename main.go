@@ -23,6 +23,12 @@ func main() {
 		fmt.Println()
 		q.PromptAns()
 
+		if q.IsCorrect() {
+			fmt.Println("Correct")
+		} else {
+			fmt.Println("Incorrect")
+		}
+
 		switch q.PromptNext() {
 		case "n":
 			fmt.Println("n is pressed")
@@ -39,10 +45,5 @@ func main() {
 			fmt.Println("Invalid Option")
 		}
 
-		if q.IsCorrect() {
-			fmt.Println("Correct")
-		} else {
-			fmt.Println("Incorrect")
-		}
 	}
 }
