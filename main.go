@@ -10,12 +10,15 @@ func main() {
 
 	qm := helper.Manager{}
 
-	quizes := qm.BuildQuiz()
+	qm.BuildQuiz()
 
-	for _, q := range quizes {
+	for {
 
 		qm.DisplayStat()
 		fmt.Println()
+
+		q := qm.GetQuiz()
+
 		q.Display()
 		fmt.Println()
 		q.PromptAns()
@@ -25,7 +28,7 @@ func main() {
 			fmt.Println("n is pressed")
 		case "m":
 			fmt.Println("word should be mastered")
-			qm.Mastered++
+			qm.Stat.Mastered++
 		case "u":
 			fmt.Println("word should be masked")
 		case "v":
