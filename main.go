@@ -14,55 +14,54 @@ func main() {
 
 	qm.BuildQuiz()
 
-	qn := qm.StageQuiz()
+	q := helper.Quiz{}
 
-	var q helper.Quiz
+	q = q.Build()
 
-mainLoop:
 	for {
 
-		clearScreen()
-		qm.DisplayStat()
+		clear()
+		q.DisplayStat()
 		fmt.Println()
 
-		if qm.Stat.Masked == qm.StageCount {
+		if q.Stat.Masked == q.Stat.Staged {
 			fmt.Println("All staged quizes masked or mastered!")
 			break
 		}
 
-		q = qn.Cur.(helper.Quiz)
-
 		q.Display()
 		fmt.Println()
-		q.PromptAns()
 
-		if q.IsCorrect() {
+		ans := q.PromptAns()
+
+		if q.IsCorrect(ans) {
 			fmt.Println("Correct")
 		} else {
 			fmt.Println("Incorrect! Correct answer is:", q.Options[q.CorrectOption])
 		}
 
-		switch q.PromptNext() {
-		case "n":
-			fmt.Println("n is pressed")
-		case "m":
-			// fmt.Println("word should be mastered")
-			qm.Stat.Mastered++
-		case "u":
-			qm.Mask(&qn)
-		case "v":
-			fmt.Println("Correct answer should be displayed")
-		case "q":
-			break mainLoop
-		default:
-			fmt.Println("Invalid Option")
+		input := q.PromptNext()
+
+		// switch is used requires labled break
+		// testing if the request is to quit
+		if input == "q" {
+			break
 		}
 
-		qn = *qn.Next
+		// default case doesn't require any action
+		// ommiting 'n'
+		switch input {
+		case "m":
+			q.Master()
+		case "u":
+			q.Mask()
+		}
+
+		q = *q.Next
 	}
 }
 
-func clearScreen() {
+func clear() {
 
 	cmd := exec.Command("clear")
 	cmd.Stdout = os.Stdout

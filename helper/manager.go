@@ -178,11 +178,6 @@ func (m *Manager) BuildQuiz() {
 	m.Stat.Staged = len(m.staged)
 }
 
-// DisplayStat displays stats
-func (m Manager) DisplayStat() {
-	fmt.Printf("Total Words: %d\tStaged: %d\tMastered: %d[%.2f]\tMasked: %d\n", m.Stat.Total, m.Stat.Staged, m.Stat.Mastered, float64(m.Stat.Mastered)/float64(m.Stat.Total)*100, m.Stat.Masked)
-}
-
 // GetQuiz returns a quiz
 func (m *Manager) GetQuiz() Quiz {
 	//fmt.Println("staged", m.staged)
