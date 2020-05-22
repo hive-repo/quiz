@@ -25,14 +25,14 @@ func (q Quiz) Display() {
 }
 
 // PromptAns asks ans
-func (q Quiz) PromptAns() {
+func (q *Quiz) PromptAns() {
 	fmt.Print("Answer: ")
 	fmt.Scan(&q.ans)
 }
 
 // IsCorrect verifies given answer with correct option
 func (q Quiz) IsCorrect() bool {
-	return q.ans == q.CorrectOption
+	return q.ans == q.CorrectOption+1
 }
 
 // PromptNext prompts next action
