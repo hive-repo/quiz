@@ -103,6 +103,7 @@ func (q *Quiz) Master() *Quiz {
 		Options:       quiz.Options,
 		CorrectOption: quiz.CorrectOption,
 		Stat:          q.Stat,
+		Config:        q.Config,
 		all:           q.all,
 	}
 
