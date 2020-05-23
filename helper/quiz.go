@@ -18,6 +18,10 @@ type QuizStat struct {
 	StageCursor int
 }
 
+type QuizConfig struct {
+	PerStage int
+}
+
 // Quiz struct
 type Quiz struct {
 	Next *Quiz
@@ -31,6 +35,8 @@ type Quiz struct {
 	Stat *QuizStat
 
 	all *[]Quiz
+
+	Config *QuizConfig
 }
 
 // Display displays quiz
@@ -127,11 +133,12 @@ func (q *Quiz) Mask() {
 func (q *Quiz) DisplayStat() {
 	clear()
 
-	fmt.Printf("Total : %d\tStaged: %d\tMastered: %d[%.2f]\tMasked: %d\n",
+	fmt.Printf("Total: %d\tStaged: %d\tMastered: %d [%.2f%s]\tMasked: %d\n",
 		q.Stat.Total,
 		q.Stat.Staged,
 		q.Stat.Mastered,
 		float64(q.Stat.Mastered)/float64(q.Stat.Total)*100,
+		"%",
 		q.Stat.Masked)
 
 	fmt.Println()
@@ -140,9 +147,11 @@ func (q *Quiz) DisplayStat() {
 // Build builds the quiz
 func (q *Quiz) Build() Quiz {
 
-	perStage := 3
+	config := QuizConfig{
+		PerStage: 3,
+	}
 
-	qs := QuizStat{}
+	stat := QuizStat{}
 
 	quizes := []Quiz{
 		Quiz{
@@ -195,33 +204,44 @@ func (q *Quiz) Build() Quiz {
 			},
 			CorrectOption: 0,
 		},
+		Quiz{
+			Question: "6. 2+2",
+			Options: []Option{
+				"0",
+				"1",
+				"-1",
+				"4",
+			},
+			CorrectOption: 3,
+		},
 	}
 
-	for i := 0; i < perStage; i++ {
+	for i := 0; i < config.PerStage; i++ {
 		var prev, next int
 
 		prev = i - 1
 		// prev first first node will be last node
 		if i == 0 {
-			prev = perStage - 1
+			prev = config.PerStage - 1
 		}
 
 		next = i + 1
 		// next for last node will be first node
-		if i == perStage-1 {
+		if i == config.PerStage-1 {
 			next = 0
 		}
 
 		quizes[i].ID = i
 		quizes[i].Prev = &quizes[prev]
 		quizes[i].Next = &quizes[next]
-		quizes[i].Stat = &qs
+		quizes[i].Stat = &stat
 		quizes[i].all = &quizes
+		quizes[i].Config = &config
 	}
 
-	qs.Total = len(quizes)
-	qs.Staged = perStage
-	qs.StageCursor = qs.Staged
+	stat.Total = len(quizes)
+	stat.Staged = config.PerStage
+	stat.StageCursor = stat.Staged
 
 	return quizes[0]
 }
