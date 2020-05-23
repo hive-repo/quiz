@@ -2,8 +2,13 @@ package helper
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"os/user"
+	"strconv"
+
+	"gopkg.in/yaml.v2"
 )
 
 // Option for quiz
@@ -20,7 +25,7 @@ type QuizStat struct {
 
 // QuizConfig holds configs
 type QuizConfig struct {
-	PerStage int
+	PerStage int `yaml:"perStage"`
 }
 
 // Quiz struct
@@ -28,10 +33,10 @@ type Quiz struct {
 	Next *Quiz
 	Prev *Quiz
 
-	ID            int
-	Question      string
-	Options       []Option
-	CorrectOption int
+	ID            string   `yaml:"id"`
+	Question      string   `yaml:"question"`
+	Options       []Option `yaml:"options"`
+	CorrectOption int      `yaml:"correctOption"`
 
 	Stat *QuizStat
 
@@ -44,16 +49,16 @@ type Quiz struct {
 func (q *Quiz) DisplayStat() {
 	clear()
 
-	fmt.Printf("TOTAL: %d\tSTAGED: %d/%d\tMASTERED: %d/%d, %.2f%s\tMASKED: %d/%d\n",
+	fmt.Printf("TOTAL: %d\tSTAGED: %d/%d\tMASKED: %d/%d\tMASTERED: %d/%d, %.2f%s\n",
 		q.Stat.Total,
 		q.Stat.Staged,
 		q.Stat.Total,
+		q.Stat.Masked,
+		q.Stat.Staged,
 		q.Stat.Mastered,
 		q.Stat.Total,
 		float64(q.Stat.Mastered)/float64(q.Stat.Total)*100,
-		"%",
-		q.Stat.Masked,
-		q.Stat.Staged)
+		"%")
 
 	fmt.Println()
 }
@@ -118,7 +123,7 @@ func (q *Quiz) Master() *Quiz {
 	nq := Quiz{
 		Next:          q.Next,
 		Prev:          q.Prev,
-		ID:            q.Stat.StageCursor,
+		ID:            strconv.Itoa(q.Stat.StageCursor),
 		Question:      quiz.Question,
 		Options:       quiz.Options,
 		CorrectOption: quiz.CorrectOption,
@@ -153,74 +158,22 @@ func (q *Quiz) Mask() {
 // Build builds the quiz
 func (q *Quiz) Build() Quiz {
 
-	config := QuizConfig{
-		PerStage: 3,
-	}
+	config := QuizConfig{}
+	user, _ := user.Current()
+
+	configFile, _ := ioutil.ReadFile(user.HomeDir + "/.quiz/config.yaml")
+
+	yaml.Unmarshal([]byte(configFile), &config)
 
 	stat := QuizStat{}
 
-	quizes := []Quiz{
-		Quiz{
-			Question: "1. What is the Capital city of Nepal?",
-			Options: []Option{
-				"Delhi",
-				"Dhaka",
-				"Kathmandu",
-				"Nepalgunj",
-			},
-			CorrectOption: 2,
-		},
-		Quiz{
-			Question: "2. Which is the biggest lake of Nepal?",
-			Options: []Option{
-				"Rara",
-				"Foksundo",
-				"Fewatal",
-				"Se Foksundo",
-			},
-			CorrectOption: 0,
-		},
-		Quiz{
-			Question: "3. National bird of Nepal",
-			Options: []Option{
-				"Maina",
-				"Danfe",
-				"Suga",
-				"Gothri",
-			},
-			CorrectOption: 1,
-		},
-		Quiz{
-			Question: "4. 2 x 2",
-			Options: []Option{
-				"6",
-				"4",
-				"3",
-				"8",
-			},
-			CorrectOption: 1,
-		},
-		Quiz{
-			Question: "5. 2-2",
-			Options: []Option{
-				"0",
-				"1",
-				"-1",
-				"8",
-			},
-			CorrectOption: 0,
-		},
-		Quiz{
-			Question: "6. 2+2",
-			Options: []Option{
-				"0",
-				"1",
-				"-1",
-				"4",
-			},
-			CorrectOption: 3,
-		},
-	}
+	quizes := []Quiz{}
+
+	quizFile, _ := ioutil.ReadFile(user.HomeDir + "/.quiz/quizes.yaml")
+
+	yaml.Unmarshal([]byte(quizFile), &quizes)
+
+	fmt.Println(len(quizes))
 
 	for i := 0; i < config.PerStage; i++ {
 		var prev, next int
@@ -237,7 +190,7 @@ func (q *Quiz) Build() Quiz {
 			next = 0
 		}
 
-		quizes[i].ID = i
+		quizes[i].ID = strconv.Itoa(i)
 		quizes[i].Prev = &quizes[prev]
 		quizes[i].Next = &quizes[next]
 		quizes[i].Stat = &stat
