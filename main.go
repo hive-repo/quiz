@@ -8,42 +8,62 @@ import (
 
 func main() {
 
-	qm := helper.Manager{}
-
-	qm.BuildQuiz()
+	q := (&helper.Quiz{}).Build()
 
 	for {
 
-		qm.DisplayStat()
-		fmt.Println()
+		q.DisplayStat()
 
-		q := qm.GetQuiz()
+		if q.Stat.Masked == q.Stat.Staged {
+			fmt.Println("All staged quizes masked or mastered!")
+			break
+		}
 
 		q.Display()
-		fmt.Println()
-		q.PromptAns()
 
-		if q.IsCorrect() {
+		ans := q.PromptAns()
+
+		if q.IsCorrect(ans) {
 			fmt.Println("Correct")
 		} else {
-			fmt.Println("Incorrect")
+			fmt.Println("Incorrect! Correct answer is:", q.Options[q.CorrectOption])
 		}
 
-		switch q.PromptNext() {
-		case "n":
-			fmt.Println("n is pressed")
+		input := q.PromptNext()
+
+		// switch is used requires labled break
+		// testing if the request is to quit
+		if input == "q" {
+			break
+		}
+
+		// default case doesn't require any action
+		// ommiting 'n'
+		switch input {
 		case "m":
-			fmt.Println("word should be mastered")
-			qm.Stat.Mastered++
+			// mastering last node requires replaing
+			// the quiz pointer
+			q = *q.Master()
 		case "u":
-			fmt.Println("word should be masked")
-		case "v":
-			fmt.Println("Correct answer should be displayed")
-		case "q":
-			fmt.Println("Program should exit")
-		default:
-			fmt.Println("Invalid Option")
+			q.Mask()
 		}
 
+		// mastering all quizes should be checked
+		// before staged and masked is compared
+		// if no new node available mastering a quiz
+		// decreases Stat.Staged
+		if q.Stat.Mastered == q.Stat.Total {
+			q.DisplayStat()
+			fmt.Println("All quizes are mastered")
+			break
+		}
+
+		if q.Stat.Masked == q.Stat.Staged {
+			q.DisplayStat()
+			fmt.Println("Sufficent quizes masked")
+			break
+		}
+
+		q = *q.Advance()
 	}
 }
