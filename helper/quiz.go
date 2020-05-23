@@ -1,6 +1,10 @@
 package helper
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+	"os/exec"
+)
 
 // Option for quiz
 type Option string
@@ -19,6 +23,7 @@ type Quiz struct {
 	Next *Quiz
 	Prev *Quiz
 
+	ID            int
 	Question      string
 	Options       []Option
 	CorrectOption int
@@ -38,6 +43,8 @@ func (q *Quiz) Display() {
 	for k, v := range q.Options {
 		fmt.Printf("%d. %s\n", k+1, v)
 	}
+
+	fmt.Println()
 }
 
 // PromptAns asks ans
@@ -64,14 +71,28 @@ func (q *Quiz) PromptNext() string {
 }
 
 // Master masters the Quiz
-func (q *Quiz) Master() {
+func (q *Quiz) Master() *Quiz {
 	q.Stat.Mastered++
+
+	// no new quiz
+	// remove current node from the chain
+	if q.Stat.Total == q.Stat.StageCursor {
+		q.Prev.Next = q.Next
+		q.Next.Prev = q.Prev
+
+		// node removed from staged chain
+		// but no new node added
+		q.Stat.Staged--
+
+		return q
+	}
 
 	quiz := (*q.all)[q.Stat.StageCursor]
 
 	nq := Quiz{
 		Next:          q.Next,
 		Prev:          q.Prev,
+		ID:            q.Stat.StageCursor,
 		Question:      quiz.Question,
 		Options:       quiz.Options,
 		CorrectOption: quiz.CorrectOption,
@@ -79,10 +100,20 @@ func (q *Quiz) Master() {
 		all:           q.all,
 	}
 
-	q.Prev.Next = &nq
-	q.Next.Prev = &nq
+	// last node
+	if q.Next.ID == q.ID {
+		q = &nq
+		q.Next = &nq
+		q.Prev = &nq
+
+	} else {
+		q.Prev.Next = &nq
+		q.Next.Prev = &nq
+	}
 
 	q.Stat.StageCursor++
+
+	return q
 }
 
 // Mask masks the Quiz
@@ -94,12 +125,16 @@ func (q *Quiz) Mask() {
 
 // DisplayStat displays stats
 func (q *Quiz) DisplayStat() {
-	fmt.Printf("Total Words: %d\tStaged: %d\tMastered: %d[%.2f]\tMasked: %d\n",
+	clear()
+
+	fmt.Printf("Total : %d\tStaged: %d\tMastered: %d[%.2f]\tMasked: %d\n",
 		q.Stat.Total,
 		q.Stat.Staged,
 		q.Stat.Mastered,
 		float64(q.Stat.Mastered)/float64(q.Stat.Total)*100,
 		q.Stat.Masked)
+
+	fmt.Println()
 }
 
 // Build builds the quiz
@@ -111,7 +146,7 @@ func (q *Quiz) Build() Quiz {
 
 	quizes := []Quiz{
 		Quiz{
-			Question: "What is the Capital city of Nepal?",
+			Question: "1. What is the Capital city of Nepal?",
 			Options: []Option{
 				"Delhi",
 				"Dhaka",
@@ -121,7 +156,7 @@ func (q *Quiz) Build() Quiz {
 			CorrectOption: 2,
 		},
 		Quiz{
-			Question: "Which is the biggest lake of Nepal?",
+			Question: "2. Which is the biggest lake of Nepal?",
 			Options: []Option{
 				"Rara",
 				"Foksundo",
@@ -131,7 +166,7 @@ func (q *Quiz) Build() Quiz {
 			CorrectOption: 0,
 		},
 		Quiz{
-			Question: "National bird of Nepal",
+			Question: "3. National bird of Nepal",
 			Options: []Option{
 				"Maina",
 				"Danfe",
@@ -141,7 +176,7 @@ func (q *Quiz) Build() Quiz {
 			CorrectOption: 1,
 		},
 		Quiz{
-			Question: "2 x 2",
+			Question: "4. 2 x 2",
 			Options: []Option{
 				"6",
 				"4",
@@ -151,7 +186,7 @@ func (q *Quiz) Build() Quiz {
 			CorrectOption: 1,
 		},
 		Quiz{
-			Question: "2-2",
+			Question: "5. 2-2",
 			Options: []Option{
 				"0",
 				"1",
@@ -177,6 +212,7 @@ func (q *Quiz) Build() Quiz {
 			next = 0
 		}
 
+		quizes[i].ID = i
 		quizes[i].Prev = &quizes[prev]
 		quizes[i].Next = &quizes[next]
 		quizes[i].Stat = &qs
@@ -188,4 +224,16 @@ func (q *Quiz) Build() Quiz {
 	qs.StageCursor = qs.Staged
 
 	return quizes[0]
+}
+
+// Advance advances the quiz to next
+func (q *Quiz) Advance() *Quiz {
+	return q.Next
+}
+
+func clear() {
+
+	cmd := exec.Command("clear")
+	cmd.Stdout = os.Stdout
+	cmd.Run()
 }

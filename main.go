@@ -2,27 +2,17 @@ package main
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
 
 	"github.com/hive-repo/quiz/helper"
 )
 
 func main() {
 
-	qm := helper.Manager{}
-
-	qm.BuildQuiz()
-
-	q := helper.Quiz{}
-
-	q = q.Build()
+	q := (&helper.Quiz{}).Build()
 
 	for {
 
-		clear()
 		q.DisplayStat()
-		fmt.Println()
 
 		if q.Stat.Masked == q.Stat.Staged {
 			fmt.Println("All staged quizes masked or mastered!")
@@ -30,7 +20,6 @@ func main() {
 		}
 
 		q.Display()
-		fmt.Println()
 
 		ans := q.PromptAns()
 
@@ -52,18 +41,29 @@ func main() {
 		// ommiting 'n'
 		switch input {
 		case "m":
-			q.Master()
+			// mastering last node requires replaing
+			// the quiz pointer
+			q = *q.Master()
 		case "u":
 			q.Mask()
 		}
 
-		q = *q.Next
+		// mastering all quizes should be checked
+		// before staged and masked is compared
+		// if no new node available mastering a quiz
+		// decreases Stat.Staged
+		if q.Stat.Mastered == q.Stat.Total {
+			q.DisplayStat()
+			fmt.Println("All quizes are mastered")
+			break
+		}
+
+		if q.Stat.Masked == q.Stat.Staged {
+			q.DisplayStat()
+			fmt.Println("Sufficent quizes masked")
+			break
+		}
+
+		q = *q.Advance()
 	}
-}
-
-func clear() {
-
-	cmd := exec.Command("clear")
-	cmd.Stdout = os.Stdout
-	cmd.Run()
 }
