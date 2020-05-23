@@ -43,14 +43,6 @@ func main() {
 			q.Mask()
 		}
 
-		// mask + master exceeds the quiz
-		if q.Stat.Staged < q.Config.PerStage &&
-			q.Stat.Masked+q.Stat.Mastered == q.Stat.Total {
-			q.DisplayStat()
-			fmt.Println("All quiezes are either mastered or masked")
-			break
-		}
-
 		// mastering all quizes should be checked
 		// before staged and masked is compared
 		// if no new node available mastering a quiz
@@ -58,6 +50,14 @@ func main() {
 		if q.Stat.Mastered == q.Stat.Total {
 			q.DisplayStat()
 			fmt.Println("All quizes are mastered")
+			break
+		}
+
+		// mask + master exceeds the quiz
+		if q.Stat.Staged < q.Config.PerStage &&
+			q.Stat.Masked+q.Stat.Mastered == q.Stat.Total {
+			q.DisplayStat()
+			fmt.Println("All quiezes are either mastered or masked")
 			break
 		}
 
