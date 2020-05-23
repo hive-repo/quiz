@@ -133,13 +133,16 @@ func (q *Quiz) Mask() {
 func (q *Quiz) DisplayStat() {
 	clear()
 
-	fmt.Printf("Total: %d\tStaged: %d\tMastered: %d [%.2f%s]\tMasked: %d\n",
+	fmt.Printf("Total: %d\tStaged: %d/%d\tMastered: %d/%d [%.2f%s]\tMasked: %d/%d\n",
 		q.Stat.Total,
 		q.Stat.Staged,
+		q.Stat.Total,
 		q.Stat.Mastered,
+		q.Stat.Total,
 		float64(q.Stat.Mastered)/float64(q.Stat.Total)*100,
 		"%",
-		q.Stat.Masked)
+		q.Stat.Masked,
+		q.Stat.Staged)
 
 	fmt.Println()
 }
