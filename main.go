@@ -19,9 +19,9 @@ func main() {
 		ans := q.PromptAns()
 
 		if q.IsCorrect(ans) {
-			fmt.Println("Correct")
+			fmt.Printf("\nCorrect!\n\n")
 		} else {
-			fmt.Println("Incorrect! Correct answer is:", q.Options[q.CorrectOption])
+			fmt.Printf("\nIncorrect! Correct answer is: %s\n\n", q.Options[q.CorrectOption])
 		}
 
 		input := q.PromptNext()

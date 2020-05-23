@@ -18,6 +18,7 @@ type QuizStat struct {
 	StageCursor int
 }
 
+// QuizConfig holds configs
 type QuizConfig struct {
 	PerStage int
 }
@@ -39,15 +40,34 @@ type Quiz struct {
 	Config *QuizConfig
 }
 
+// DisplayStat displays stats
+func (q *Quiz) DisplayStat() {
+	clear()
+
+	fmt.Printf("TOTAL: %d\tSTAGED: %d/%d\tMASTERED: %d/%d, %.2f%s\tMASKED: %d/%d\n",
+		q.Stat.Total,
+		q.Stat.Staged,
+		q.Stat.Total,
+		q.Stat.Mastered,
+		q.Stat.Total,
+		float64(q.Stat.Mastered)/float64(q.Stat.Total)*100,
+		"%",
+		q.Stat.Masked,
+		q.Stat.Staged)
+
+	fmt.Println()
+}
+
 // Display displays quiz
 func (q *Quiz) Display() {
 
-	fmt.Println(q.Question)
+	fmt.Printf("Question: %s\n", q.Question)
 	fmt.Println()
 
 	// print options
+	fmt.Printf("OPTIONS:\n\n")
 	for k, v := range q.Options {
-		fmt.Printf("%d. %s\n", k+1, v)
+		fmt.Printf(" [%d] %s\n", k+1, v)
 	}
 
 	fmt.Println()
@@ -70,7 +90,7 @@ func (q Quiz) IsCorrect(ans int) bool {
 // PromptNext prompts next action
 func (q *Quiz) PromptNext() string {
 	var input string
-	fmt.Printf("NEXT(n)\t\tMASTER(m)\tMASK(u)\t\tVIEW(v)\t\tQUIT(q): ")
+	fmt.Printf("NEXT[n]\t\tMASTER[m]\tMASK[u]\t\tVIEW[v]\t\tQUIT[q]: ")
 	fmt.Scan(&input)
 
 	return input
@@ -128,24 +148,6 @@ func (q *Quiz) Mask() {
 	q.Stat.Masked++
 	q.Prev.Next = q.Next
 	q.Next.Prev = q.Prev
-}
-
-// DisplayStat displays stats
-func (q *Quiz) DisplayStat() {
-	clear()
-
-	fmt.Printf("Total: %d\tStaged: %d/%d\tMastered: %d/%d [%.2f%s]\tMasked: %d/%d\n",
-		q.Stat.Total,
-		q.Stat.Staged,
-		q.Stat.Total,
-		q.Stat.Mastered,
-		q.Stat.Total,
-		float64(q.Stat.Mastered)/float64(q.Stat.Total)*100,
-		"%",
-		q.Stat.Masked,
-		q.Stat.Staged)
-
-	fmt.Println()
 }
 
 // Build builds the quiz
