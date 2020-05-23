@@ -26,7 +26,7 @@ func main() {
 
 		input := q.PromptNext()
 
-		// switch is used requires labled break
+		// if switch is used requires labled break
 		// testing if the request is to quit
 		if input == "q" {
 			break
@@ -36,7 +36,7 @@ func main() {
 		// ommiting 'n'
 		switch input {
 		case "m":
-			// mastering last node requires replaing
+			// mastering last node requires replacing
 			// the quiz pointer
 			q = *q.Master()
 		case "u":
