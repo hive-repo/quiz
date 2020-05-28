@@ -6,7 +6,6 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
-	"strconv"
 
 	"gopkg.in/yaml.v2"
 )
@@ -16,11 +15,11 @@ type Option string
 
 // QuizStat records current statistics of Quiz
 type QuizStat struct {
-	Total       int
-	Staged      int
-	Mastered    int
-	Masked      int
-	StageCursor int
+	Total       int   `yaml:"total"`
+	Staged      int   `yaml:"staged"`
+	Mastered    []int `yaml:"mastered"`
+	Masked      int   `yaml:"masked"`
+	StageCursor int   `yaml:"stageCursor"`
 }
 
 // QuizConfig holds configs
@@ -33,12 +32,13 @@ type Quiz struct {
 	Next *Quiz
 	Prev *Quiz
 
-	ID            string   `yaml:"id"`
+	ID            int      `yaml:"id"`
 	Question      string   `yaml:"question"`
 	Options       []Option `yaml:"options"`
 	CorrectOption int      `yaml:"correctOption"`
 
-	Stat *QuizStat
+	Stat       *QuizStat
+	isMastered bool
 
 	all *[]Quiz
 
@@ -49,15 +49,15 @@ type Quiz struct {
 func (q *Quiz) DisplayStat() {
 	clear()
 
-	fmt.Printf("TOTAL: %d\tSTAGED: %d/%d\tMASKED: %d/%d\tMASTERED: %d/%d, %.2f%s\n",
+	fmt.Printf("TOTAL: %d\tSTAGED: %d/%d\t\tMASKED: %d/%d\tMASTERED: %d/%d, %.2f%s\n",
 		q.Stat.Total,
 		q.Stat.Staged,
 		q.Stat.Total,
 		q.Stat.Masked,
 		q.Stat.Staged,
-		q.Stat.Mastered,
+		len(q.Stat.Mastered),
 		q.Stat.Total,
-		float64(q.Stat.Mastered)/float64(q.Stat.Total)*100,
+		float64(len(q.Stat.Mastered))/float64(q.Stat.Total)*100,
 		"%")
 
 	fmt.Println()
@@ -103,7 +103,8 @@ func (q *Quiz) PromptNext() string {
 
 // Master masters the Quiz
 func (q *Quiz) Master() *Quiz {
-	q.Stat.Mastered++
+
+	q.Stat.Mastered = append(q.Stat.Mastered, q.ID)
 
 	// no new quiz
 	// remove current node from the chain
@@ -123,7 +124,7 @@ func (q *Quiz) Master() *Quiz {
 	nq := Quiz{
 		Next:          q.Next,
 		Prev:          q.Prev,
-		ID:            strconv.Itoa(q.Stat.StageCursor),
+		ID:            q.Stat.StageCursor,
 		Question:      quiz.Question,
 		Options:       quiz.Options,
 		CorrectOption: quiz.CorrectOption,
@@ -145,7 +146,17 @@ func (q *Quiz) Master() *Quiz {
 
 	q.Stat.StageCursor++
 
+	q.saveStat()
 	return q
+}
+
+// SaveStat saves current stats
+func (q *Quiz) saveStat() {
+	// var data []byte
+	data, _ := yaml.Marshal(q.Stat)
+
+	user, _ := user.Current()
+	ioutil.WriteFile(user.HomeDir+"/.quiz/stat.yaml", data, 0640)
 }
 
 // Mask masks the Quiz
@@ -168,15 +179,37 @@ func (q *Quiz) Build() Quiz {
 	stat := QuizStat{}
 
 	quizes := []Quiz{}
+	staged := make([]Quiz, 0, 50)
+
+	// fill out staged
+	for i := 0; i < config.PerStage; i++ {
+		staged = append(staged, Quiz{})
+	}
 
 	quizFile, _ := ioutil.ReadFile(user.HomeDir + "/.quiz/quizes.yaml")
 
 	yaml.Unmarshal([]byte(quizFile), &quizes)
 
-	fmt.Println(len(quizes))
+	statFile, _ := ioutil.ReadFile(user.HomeDir + "/.quiz/stat.yaml")
 
-	for i := 0; i < config.PerStage; i++ {
-		var prev, next int
+	yaml.Unmarshal([]byte(statFile), &stat)
+
+	// mark mastered
+	for _, qi := range stat.Mastered {
+		quizes[qi].isMastered = true
+	}
+
+	var prev, next int
+
+	i := 0
+	for _, q := range quizes {
+		if i == config.PerStage {
+			break
+		}
+
+		if q.isMastered {
+			continue
+		}
 
 		prev = i - 1
 		// prev first first node will be last node
@@ -190,19 +223,22 @@ func (q *Quiz) Build() Quiz {
 			next = 0
 		}
 
-		quizes[i].ID = strconv.Itoa(i)
-		quizes[i].Prev = &quizes[prev]
-		quizes[i].Next = &quizes[next]
-		quizes[i].Stat = &stat
-		quizes[i].all = &quizes
-		quizes[i].Config = &config
+		staged[i] = q
+		staged[i].ID = q.ID
+		staged[i].Prev = &staged[prev]
+		staged[i].Next = &staged[next]
+		staged[i].Stat = &stat
+		staged[i].all = &quizes
+		staged[i].Config = &config
+
+		i++
 	}
 
 	stat.Total = len(quizes)
 	stat.Staged = config.PerStage
 	stat.StageCursor = stat.Staged
 
-	return quizes[0]
+	return staged[0]
 }
 
 // Advance advances the quiz to next
