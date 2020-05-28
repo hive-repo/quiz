@@ -18,7 +18,7 @@ type QuizStat struct {
 	Total       int   `yaml:"total"`
 	Staged      int   `yaml:"staged"`
 	Mastered    []int `yaml:"mastered"`
-	Masked      int   `yaml:"masked"`
+	Masked      int   `yaml:""`
 	StageCursor int   `yaml:"stageCursor"`
 }
 
