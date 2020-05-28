@@ -15,11 +15,11 @@ type Option string
 
 // QuizStat records current statistics of Quiz
 type QuizStat struct {
-	Total       int   `yaml:"total"`
-	Staged      int   `yaml:"staged"`
-	Mastered    []int `yaml:"mastered"`
-	Masked      int   `yaml:""`
-	StageCursor int   `yaml:"stageCursor"`
+	Total    int   `yaml:"total"`
+	Staged   int   `yaml:"staged"`
+	Mastered []int `yaml:"mastered"`
+	Cursor   int   `yaml:"cursor"`
+	masked   int
 }
 
 // QuizConfig holds configs
@@ -53,7 +53,7 @@ func (q *Quiz) DisplayStat() {
 		q.Stat.Total,
 		q.Stat.Staged,
 		q.Stat.Total,
-		q.Stat.Masked,
+		q.Stat.masked,
 		q.Stat.Staged,
 		len(q.Stat.Mastered),
 		q.Stat.Total,
@@ -108,7 +108,7 @@ func (q *Quiz) Master() *Quiz {
 
 	// no new quiz
 	// remove current node from the chain
-	if q.Stat.Total == q.Stat.StageCursor {
+	if q.Stat.Total == q.Stat.Cursor {
 		q.Prev.Next = q.Next
 		q.Next.Prev = q.Prev
 
@@ -119,19 +119,13 @@ func (q *Quiz) Master() *Quiz {
 		return q
 	}
 
-	quiz := (*q.all)[q.Stat.StageCursor]
+	nq := (*q.all)[q.Stat.Cursor]
 
-	nq := Quiz{
-		Next:          q.Next,
-		Prev:          q.Prev,
-		ID:            q.Stat.StageCursor,
-		Question:      quiz.Question,
-		Options:       quiz.Options,
-		CorrectOption: quiz.CorrectOption,
-		Stat:          q.Stat,
-		Config:        q.Config,
-		all:           q.all,
-	}
+	nq.Next = q.Next
+	nq.Prev = q.Prev
+	nq.Stat = q.Stat
+	nq.Config = q.Config
+	nq.all = q.all
 
 	// last node
 	if q.Next.ID == q.ID {
@@ -144,7 +138,7 @@ func (q *Quiz) Master() *Quiz {
 		q.Next.Prev = &nq
 	}
 
-	q.Stat.StageCursor++
+	q.Stat.Cursor++
 
 	q.saveStat()
 	return q
@@ -161,7 +155,7 @@ func (q *Quiz) saveStat() {
 
 // Mask masks the Quiz
 func (q *Quiz) Mask() {
-	q.Stat.Masked++
+	q.Stat.masked++
 	q.Prev.Next = q.Next
 	q.Next.Prev = q.Prev
 }
@@ -236,7 +230,6 @@ func (q *Quiz) Build() Quiz {
 
 	stat.Total = len(quizes)
 	stat.Staged = config.PerStage
-	stat.StageCursor = stat.Staged
 
 	return staged[0]
 }
@@ -244,6 +237,16 @@ func (q *Quiz) Build() Quiz {
 // Advance advances the quiz to next
 func (q *Quiz) Advance() *Quiz {
 	return q.Next
+}
+
+// AllMaskedOrMastered checks if all ethier masked or mastered
+func (q *Quiz) AllMaskedOrMastered() bool {
+	return q.Stat.masked+len(q.Stat.Mastered) == q.Stat.Total
+}
+
+// ReachedMaskLimit checks if mask limit is reached
+func (q *Quiz) ReachedMaskLimit() bool {
+	return q.Stat.masked == q.Stat.Staged
 }
 
 func clear() {

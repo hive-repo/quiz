@@ -54,14 +54,13 @@ func main() {
 		}
 
 		// mask + master exceeds the quiz
-		if q.Stat.Staged < q.Config.PerStage &&
-			q.Stat.Masked+len(q.Stat.Mastered) == q.Stat.Total {
+		if q.Stat.Staged < q.Config.PerStage && q.AllMaskedOrMastered() {
 			q.DisplayStat()
 			fmt.Println("All quiezes are either mastered or masked")
 			break
 		}
 
-		if q.Stat.Masked == q.Stat.Staged {
+		if q.ReachedMaskLimit() {
 			q.DisplayStat()
 			fmt.Println("Mask limit reached!")
 			break
