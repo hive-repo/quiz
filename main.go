@@ -8,7 +8,7 @@ import (
 
 func main() {
 
-	q := (&helper.Quiz{}).Build()
+	q := (helper.Quiz{}).Build()
 
 	for {
 
@@ -38,9 +38,10 @@ func main() {
 		case "m":
 			// mastering last node requires replacing
 			// the quiz pointer
-			q = *q.Master()
+			q = q.Master()
 		case "u":
-			q.Mask()
+			q = q.Mask()
+			fmt.Printf("%T\n", q)
 		}
 
 		// mastering all quizes should be checked
@@ -66,6 +67,6 @@ func main() {
 			break
 		}
 
-		q = *q.Advance()
+		q = q.Advance()
 	}
 }

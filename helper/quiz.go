@@ -154,14 +154,16 @@ func (q *Quiz) saveStat() {
 }
 
 // Mask masks the Quiz
-func (q *Quiz) Mask() {
+func (q *Quiz) Mask() *Quiz {
 	q.Stat.masked++
 	q.Prev.Next = q.Next
 	q.Next.Prev = q.Prev
+
+	return q
 }
 
 // Build builds the quiz
-func (q *Quiz) Build() Quiz {
+func (q Quiz) Build() *Quiz {
 
 	config := QuizConfig{}
 	user, _ := user.Current()
@@ -231,7 +233,7 @@ func (q *Quiz) Build() Quiz {
 	stat.Total = len(quizes)
 	stat.Staged = config.PerStage
 
-	return staged[0]
+	return &staged[0]
 }
 
 // Advance advances the quiz to next
