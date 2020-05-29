@@ -59,9 +59,9 @@ func main() {
 		case "m":
 			// mastering last node requires replacing
 			// the quiz pointer
-			q = q.Master()
+			q.Master()
 		case "u":
-			q = q.Mask()
+			q.Mask()
 		}
 
 		// mastering all quizes should be checked

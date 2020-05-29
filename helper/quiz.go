@@ -102,7 +102,7 @@ func (q *Quiz) PromptNext() string {
 }
 
 // Master masters the Quiz
-func (q *Quiz) Master() *Quiz {
+func (q *Quiz) Master() {
 
 	q.Stat.Mastered = append(q.Stat.Mastered, q.ID)
 
@@ -115,8 +115,6 @@ func (q *Quiz) Master() *Quiz {
 		// node removed from staged chain
 		// but no new node added
 		q.Stat.Staged--
-
-		return q
 	}
 
 	nq := (*q.all)[q.Stat.Cursor]
@@ -141,7 +139,6 @@ func (q *Quiz) Master() *Quiz {
 	q.Stat.Cursor++
 
 	q.saveStat()
-	return q
 }
 
 // SaveStat saves current stats
@@ -154,12 +151,10 @@ func (q *Quiz) saveStat() {
 }
 
 // Mask masks the Quiz
-func (q *Quiz) Mask() *Quiz {
+func (q *Quiz) Mask() {
 	q.Stat.masked++
 	q.Prev.Next = q.Next
 	q.Next.Prev = q.Prev
-
-	return q
 }
 
 // Build builds the quiz
@@ -209,10 +204,12 @@ func (q Quiz) Build(config QuizConfig, stat QuizStat, quizes []Quiz) *Quiz {
 		staged[i].Config = &config
 
 		i++
+		stat.Staged++
 	}
 
 	stat.Total = len(quizes)
-	stat.Staged = config.PerStage
+	stat.Cursor = stat.Staged
+	fmt.Println(stat.Cursor)
 
 	return &staged[0]
 }
