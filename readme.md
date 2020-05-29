@@ -26,3 +26,4 @@ Other options can be added and suggestions from other members are appreciated.
 - [ ] Save State in External file/db
 - [ ] Testing
 - [ ] Modular
+- [ ] Use Cobra cli
