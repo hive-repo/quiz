@@ -163,33 +163,14 @@ func (q *Quiz) Mask() *Quiz {
 }
 
 // Build builds the quiz
-func (q Quiz) Build() *Quiz {
+func (q Quiz) Build(config QuizConfig, stat QuizStat, quizes []Quiz) *Quiz {
 
-	config := QuizConfig{}
-	user, _ := user.Current()
-
-	configFile, _ := ioutil.ReadFile(user.HomeDir + "/.quiz/config.yaml")
-
-	yaml.Unmarshal([]byte(configFile), &config)
-
-	stat := QuizStat{}
-
-	quizes := []Quiz{}
 	staged := make([]Quiz, 0, 50)
 
 	// fill out staged
 	for i := 0; i < config.PerStage; i++ {
 		staged = append(staged, Quiz{})
 	}
-
-	quizFile, _ := ioutil.ReadFile(user.HomeDir + "/.quiz/quizes.yaml")
-
-	yaml.Unmarshal([]byte(quizFile), &quizes)
-
-	statFile, _ := ioutil.ReadFile(user.HomeDir + "/.quiz/stat.yaml")
-
-	yaml.Unmarshal([]byte(statFile), &stat)
-
 	// mark mastered
 	for _, qi := range stat.Mastered {
 		quizes[qi].isMastered = true

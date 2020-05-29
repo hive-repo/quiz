@@ -2,13 +2,34 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os/user"
 
 	"github.com/hive-repo/quiz/helper"
+	"gopkg.in/yaml.v2"
 )
 
 func main() {
 
-	q := (helper.Quiz{}).Build()
+	config := helper.QuizConfig{}
+	user, _ := user.Current()
+
+	configFile, _ := ioutil.ReadFile(user.HomeDir + "/.quiz/config.yaml")
+
+	yaml.Unmarshal([]byte(configFile), &config)
+
+	quizes := []helper.Quiz{}
+
+	quizFile, _ := ioutil.ReadFile(user.HomeDir + "/.quiz/quizes.yaml")
+
+	yaml.Unmarshal([]byte(quizFile), &quizes)
+
+	stat := helper.QuizStat{}
+	statFile, _ := ioutil.ReadFile(user.HomeDir + "/.quiz/stat.yaml")
+
+	yaml.Unmarshal([]byte(statFile), &stat)
+
+	q := (helper.Quiz{}).Build(config, stat, quizes)
 
 	for {
 
@@ -41,7 +62,6 @@ func main() {
 			q = q.Master()
 		case "u":
 			q = q.Mask()
-			fmt.Printf("%T\n", q)
 		}
 
 		// mastering all quizes should be checked
