@@ -41,9 +41,9 @@ func main() {
 		ans := q.PromptAns()
 
 		if q.IsCorrect(ans) {
-			fmt.Printf("%d %s\n\n", ans, chalk.Green.Color("Correct!"))
+			fmt.Printf(" [%d] %s\n\n", ans, chalk.Green.Color("Correct!"))
 		} else {
-			fmt.Printf("%d %s\nCorrect answer is: [%d] %s\n\n", ans,
+			fmt.Printf(" [%d] %s\nCorrect: [%d] %s\n\n", ans,
 				chalk.Red.Color("Incorrect!"),
 				q.CorrectOption+1,
 				q.Options[q.CorrectOption])
