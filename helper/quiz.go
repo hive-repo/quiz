@@ -100,9 +100,10 @@ func (q Quiz) IsCorrect(ans int) bool {
 // PromptNext prompts next action
 func (q *Quiz) PromptNext() string {
 	var input string
-	fmt.Printf("NEXT[n]\t\tMASTER[m]\tMASK[u]\t\tVIEW[v]\t\tQUIT[q]")
+	fmt.Printf("MASTER[m]\tMASK[u]\t\tQUIT[q]\t\tNEXT[n]: ")
 	ans, _, _ := getChar()
 	input = string(ans)
+	fmt.Println(input)
 
 	return input
 }
@@ -124,8 +125,6 @@ func (q *Quiz) Master() {
 	}
 
 	n := &(*q.all)[q.Stat.Cursor]
-
-	fmt.Println(n)
 
 	n.Next = q.Next
 	n.Prev = q.Prev

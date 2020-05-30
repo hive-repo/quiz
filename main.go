@@ -50,6 +50,7 @@ func main() {
 		// if switch is used requires labled break
 		// testing if the request is to quit
 		if input == "q" {
+			fmt.Println()
 			break
 		}
 
