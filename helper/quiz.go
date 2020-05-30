@@ -117,23 +117,17 @@ func (q *Quiz) Master() {
 		q.Stat.staged--
 	}
 
-	nq := &(*q.all)[q.Stat.Cursor]
+	n := &(*q.all)[q.Stat.Cursor]
 
-	nq.Next = q.Next
-	nq.Prev = q.Prev
-	nq.Stat = q.Stat
-	nq.Config = q.Config
-	nq.all = q.all
+	fmt.Println(n)
 
-	// last node
-	if q.Next.ID == q.ID {
-		nq.Next = nq
-		nq.Prev = nq
-		*q = *nq
-	} else {
-		q.Prev.Next = nq
-		q.Next.Prev = nq
-	}
+	n.Next = q.Next
+	n.Prev = q.Prev
+	n.Stat = q.Stat
+	n.Config = q.Config
+	n.all = q.all
+
+	q.Next = n
 
 	q.Stat.Cursor++
 
@@ -207,14 +201,15 @@ func (q Quiz) Build(config QuizConfig, stat QuizStat, quizes []Quiz) *Quiz {
 	}
 
 	stat.Total = len(quizes)
-	stat.Cursor += stat.staged
-	fmt.Println(stat.Cursor)
+	stat.Cursor = len(stat.Mastered) + stat.staged
 
 	return &staged[0]
 }
 
 // Advance advances the quiz to next
 func (q *Quiz) Advance() *Quiz {
+	// Next pointer needs to be returned
+	// Receiver recives the Reference Pointer in it's own Pointer
 	return q.Next
 }
 
