@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
+	"strconv"
 
 	"gopkg.in/yaml.v2"
 )
@@ -80,9 +81,13 @@ func (q *Quiz) Display() {
 
 // PromptAns asks ans
 func (q Quiz) PromptAns() int {
+
 	var ans int
+
 	fmt.Print("Answer: ")
-	fmt.Scan(&ans)
+	ans, _, _ = getChar()
+	ans, _ = strconv.Atoi(string(ans))
+	fmt.Println(ans)
 
 	return ans
 }
@@ -95,8 +100,9 @@ func (q Quiz) IsCorrect(ans int) bool {
 // PromptNext prompts next action
 func (q *Quiz) PromptNext() string {
 	var input string
-	fmt.Printf("NEXT[n]\t\tMASTER[m]\tMASK[u]\t\tVIEW[v]\t\tQUIT[q]: ")
-	fmt.Scan(&input)
+	fmt.Printf("NEXT[n]\t\tMASTER[m]\tMASK[u]\t\tVIEW[v]\t\tQUIT[q]")
+	ans, _, _ := getChar()
+	input = string(ans)
 
 	return input
 }
