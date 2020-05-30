@@ -117,7 +117,7 @@ func (q *Quiz) Master() {
 		q.Stat.staged--
 	}
 
-	nq := (*q.all)[q.Stat.Cursor]
+	nq := &(*q.all)[q.Stat.Cursor]
 
 	nq.Next = q.Next
 	nq.Prev = q.Prev
@@ -127,13 +127,12 @@ func (q *Quiz) Master() {
 
 	// last node
 	if q.Next.ID == q.ID {
-		q = &nq
-		q.Next = &nq
-		q.Prev = &nq
-
+		nq.Next = nq
+		nq.Prev = nq
+		*q = *nq
 	} else {
-		q.Prev.Next = &nq
-		q.Next.Prev = &nq
+		q.Prev.Next = nq
+		q.Next.Prev = nq
 	}
 
 	q.Stat.Cursor++
