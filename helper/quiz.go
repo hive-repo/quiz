@@ -8,6 +8,7 @@ import (
 	"os/user"
 	"strconv"
 
+	"github.com/ttacon/chalk"
 	"gopkg.in/yaml.v2"
 )
 
@@ -67,7 +68,7 @@ func (q *Quiz) DisplayStat() {
 // Display displays quiz
 func (q *Quiz) Display() {
 
-	fmt.Printf("Question: %s\n", q.Question)
+	fmt.Printf("Question: %s\n", chalk.Bold.TextStyle(q.Question))
 	fmt.Println()
 
 	// print options
@@ -87,7 +88,6 @@ func (q Quiz) PromptAns() int {
 	fmt.Print("Answer: ")
 	ans, _, _ = getChar()
 	ans, _ = strconv.Atoi(string(ans))
-	fmt.Println(ans)
 
 	return ans
 }

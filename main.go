@@ -6,6 +6,7 @@ import (
 	"os/user"
 
 	"github.com/hive-repo/quiz/helper"
+	"github.com/ttacon/chalk"
 	"gopkg.in/yaml.v2"
 )
 
@@ -40,9 +41,12 @@ func main() {
 		ans := q.PromptAns()
 
 		if q.IsCorrect(ans) {
-			fmt.Printf("\nCorrect!\n\n")
+			fmt.Printf("%d %s\n\n", ans, chalk.Green.Color("Correct!"))
 		} else {
-			fmt.Printf("\nIncorrect! Correct answer is: [%d] %s\n\n", q.CorrectOption+1, q.Options[q.CorrectOption])
+			fmt.Printf("%d %s\nCorrect answer is: [%d] %s\n\n", ans,
+				chalk.Red.Color("Incorrect!"),
+				q.CorrectOption+1,
+				q.Options[q.CorrectOption])
 		}
 
 		input := q.PromptNext()
