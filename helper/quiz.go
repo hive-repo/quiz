@@ -16,10 +16,10 @@ type Option string
 // QuizStat records current statistics of Quiz
 type QuizStat struct {
 	Total    int   `yaml:"total"`
-	Staged   int   `yaml:"staged"`
 	Mastered []int `yaml:"mastered"`
 	Cursor   int   `yaml:"cursor"`
 	masked   int
+	staged   int
 }
 
 // QuizConfig holds configs
@@ -51,10 +51,10 @@ func (q *Quiz) DisplayStat() {
 
 	fmt.Printf("TOTAL: %d\tSTAGED: %d/%d\t\tMASKED: %d/%d\tMASTERED: %d/%d, %.2f%s\n",
 		q.Stat.Total,
-		q.Stat.Staged,
+		q.Stat.staged,
 		q.Stat.Total,
 		q.Stat.masked,
-		q.Stat.Staged,
+		q.Stat.staged,
 		len(q.Stat.Mastered),
 		q.Stat.Total,
 		float64(len(q.Stat.Mastered))/float64(q.Stat.Total)*100,
@@ -114,7 +114,7 @@ func (q *Quiz) Master() {
 
 		// node removed from staged chain
 		// but no new node added
-		q.Stat.Staged--
+		q.Stat.staged--
 	}
 
 	nq := (*q.all)[q.Stat.Cursor]
@@ -204,11 +204,11 @@ func (q Quiz) Build(config QuizConfig, stat QuizStat, quizes []Quiz) *Quiz {
 		staged[i].Config = &config
 
 		i++
-		stat.Staged++
+		stat.staged++
 	}
 
 	stat.Total = len(quizes)
-	stat.Cursor = stat.Staged
+	stat.Cursor += stat.staged
 	fmt.Println(stat.Cursor)
 
 	return &staged[0]
@@ -221,12 +221,13 @@ func (q *Quiz) Advance() *Quiz {
 
 // AllMaskedOrMastered checks if all ethier masked or mastered
 func (q *Quiz) AllMaskedOrMastered() bool {
-	return q.Stat.masked+len(q.Stat.Mastered) == q.Stat.Total
+	return q.Stat.staged < q.Config.PerStage &&
+		q.Stat.masked+len(q.Stat.Mastered) == q.Stat.Total
 }
 
 // ReachedMaskLimit checks if mask limit is reached
 func (q *Quiz) ReachedMaskLimit() bool {
-	return q.Stat.masked == q.Stat.Staged
+	return q.Stat.masked == q.Stat.staged
 }
 
 func clear() {
