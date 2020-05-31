@@ -8,7 +8,7 @@ func TestBuild(t *testing.T) {
 
 	q := (Quiz{}).Build(
 		QuizConfig{
-			PerStage: 4,
+			PerStage: 3,
 		},
 		QuizStat{},
 		[]Quiz{
@@ -79,5 +79,22 @@ func TestBuild(t *testing.T) {
 		if q.Next.Prev != q.Prev {
 			t.Errorf("Next's Prev is not Prev")
 		}
+	})
+
+	t.Run("Mastering", func(t *testing.T) {
+
+		t.Run("Removes current Quiz from the chain", func(t *testing.T) {
+
+			q.Master()
+
+			if q.Next.Prev == q || q.Prev.Next == q {
+				t.Errorf("Current quiz is not removed from the chain")
+			}
+
+			if q.Next.Prev != q.Prev.Next {
+				t.Errorf("Quiz chain is broken")
+			}
+
+		})
 	})
 }
