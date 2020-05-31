@@ -62,8 +62,6 @@ func main() {
 		// ommiting 'n'
 		switch input {
 		case "m":
-			// mastering last node requires replacing
-			// the quiz pointer
 			q.Master()
 		case "u":
 			q.Mask()
