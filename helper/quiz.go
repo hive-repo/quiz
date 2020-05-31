@@ -31,8 +31,8 @@ type QuizConfig struct {
 
 // Quiz struct
 type Quiz struct {
-	Next *Quiz
 	Prev *Quiz
+	Next *Quiz
 
 	ID            int      `yaml:"id"`
 	Question      string   `yaml:"question"`
@@ -132,7 +132,8 @@ func (q *Quiz) Master() {
 	n.Config = q.Config
 	n.all = q.all
 
-	q.Next = n
+	q.Prev.Next = n
+	q.Next.Prev = n
 
 	q.Stat.Cursor++
 
