@@ -194,13 +194,13 @@ func (q Quiz) Build(config QuizConfig, stat QuizStat, quizes []Quiz) *Quiz {
 			next = 0
 		}
 
+		q.Prev = &staged[prev]
+		q.Next = &staged[next]
+		q.Stat = &stat
+		q.all = &quizes
+		q.Config = &config
+
 		staged[i] = q
-		staged[i].ID = q.ID
-		staged[i].Prev = &staged[prev]
-		staged[i].Next = &staged[next]
-		staged[i].Stat = &stat
-		staged[i].all = &quizes
-		staged[i].Config = &config
 
 		i++
 		stat.staged++

@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-func TestBuild(t *testing.T) {
+func TestQuiz(t *testing.T) {
 
 	q := (Quiz{}).Build(
 		QuizConfig{
