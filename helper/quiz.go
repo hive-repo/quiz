@@ -166,8 +166,8 @@ func (q Quiz) Build(config QuizConfig, stat QuizStat, quizes []Quiz) *Quiz {
 		staged = append(staged, Quiz{})
 	}
 	// mark mastered
-	for _, qi := range stat.Mastered {
-		quizes[qi].isMastered = true
+	for _, i := range stat.Mastered {
+		quizes[i].isMastered = true
 	}
 
 	var prev, next int
