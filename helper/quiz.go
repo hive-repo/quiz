@@ -122,20 +122,20 @@ func (q *Quiz) Master() {
 		// node removed from staged chain
 		// but no new node added
 		q.Stat.staged--
+	} else {
+		n := &(*q.all)[q.Stat.Cursor]
+
+		n.Next = q.Next
+		n.Prev = q.Prev
+		n.Stat = q.Stat
+		n.Config = q.Config
+		n.all = q.all
+
+		q.Prev.Next = n
+		q.Next.Prev = n
+
+		q.Stat.Cursor++
 	}
-
-	n := &(*q.all)[q.Stat.Cursor]
-
-	n.Next = q.Next
-	n.Prev = q.Prev
-	n.Stat = q.Stat
-	n.Config = q.Config
-	n.all = q.all
-
-	q.Prev.Next = n
-	q.Next.Prev = n
-
-	q.Stat.Cursor++
 
 	q.saveStat()
 }
