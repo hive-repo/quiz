@@ -21,9 +21,10 @@ Other options can be added and suggestions from other members are appreciated.
 ## TODO
 
 - [x] Basic functionality as described in feature list
-- [ ] External Config
-- [ ] External Data
-- [ ] Save State in External file/db
+- [x] External Config
+- [x] External Data
+- [x] Save State in External file/db
 - [ ] Testing
 - [ ] Modular
 - [ ] Use Cobra cli
+- [ ] Use environment variables and arguments to get quizes. Support URLs
