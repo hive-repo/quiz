@@ -2,8 +2,14 @@ package helper
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"os/user"
+	"strconv"
+
+	"github.com/ttacon/chalk"
+	"gopkg.in/yaml.v2"
 )
 
 // Option for quiz
@@ -11,43 +17,64 @@ type Option string
 
 // QuizStat records current statistics of Quiz
 type QuizStat struct {
-	Total       int
-	Staged      int
-	Mastered    int
-	Masked      int
-	StageCursor int
+	Total    int   `yaml:"total"`
+	Mastered []int `yaml:"mastered"`
+	Cursor   int   `yaml:"cursor"`
+	masked   int
+	staged   int
 }
 
+// QuizConfig holds configs
 type QuizConfig struct {
-	PerStage int
+	PerStage int `yaml:"perStage"`
 }
 
 // Quiz struct
 type Quiz struct {
-	Next *Quiz
 	Prev *Quiz
+	Next *Quiz
 
-	ID            int
-	Question      string
-	Options       []Option
-	CorrectOption int
+	ID            int      `yaml:"id"`
+	Question      string   `yaml:"question"`
+	Options       []Option `yaml:"options"`
+	CorrectOption int      `yaml:"correctOption"`
 
-	Stat *QuizStat
+	Stat       *QuizStat
+	isMastered bool
 
 	all *[]Quiz
 
 	Config *QuizConfig
 }
 
+// DisplayStat displays stats
+func (q *Quiz) DisplayStat() {
+	clear()
+
+	fmt.Printf("TOTAL: %d\tSTAGED: %d/%d\t\tMASKED: %d/%d\tMASTERED: %d/%d, %.2f%s\n",
+		q.Stat.Total,
+		q.Stat.staged,
+		q.Stat.Total,
+		q.Stat.masked,
+		q.Stat.staged,
+		len(q.Stat.Mastered),
+		q.Stat.Total,
+		float64(len(q.Stat.Mastered))/float64(q.Stat.Total)*100,
+		"%")
+
+	fmt.Println()
+}
+
 // Display displays quiz
 func (q *Quiz) Display() {
 
-	fmt.Println(q.Question)
+	fmt.Printf("Question: %s\n", chalk.Bold.TextStyle(q.Question))
 	fmt.Println()
 
 	// print options
+	fmt.Printf("OPTIONS:\n\n")
 	for k, v := range q.Options {
-		fmt.Printf("%d. %s\n", k+1, v)
+		fmt.Printf(" [%d] %s\n", k+1, v)
 	}
 
 	fmt.Println()
@@ -55,9 +82,12 @@ func (q *Quiz) Display() {
 
 // PromptAns asks ans
 func (q Quiz) PromptAns() int {
+
 	var ans int
+
 	fmt.Print("Answer: ")
-	fmt.Scan(&ans)
+	ans, _, _ = getChar()
+	ans, _ = strconv.Atoi(string(ans))
 
 	return ans
 }
@@ -70,157 +100,87 @@ func (q Quiz) IsCorrect(ans int) bool {
 // PromptNext prompts next action
 func (q *Quiz) PromptNext() string {
 	var input string
-	fmt.Printf("NEXT(n)\t\tMASTER(m)\tMASK(u)\t\tVIEW(v)\t\tQUIT(q): ")
-	fmt.Scan(&input)
+	fmt.Printf("MASTER[m]\tMASK[u]\t\tQUIT[q]\t\tNEXT[n]: ")
+	ans, _, _ := getChar()
+	input = string(ans)
+	fmt.Println(input)
 
 	return input
 }
 
 // Master masters the Quiz
-func (q *Quiz) Master() *Quiz {
-	q.Stat.Mastered++
+func (q *Quiz) Master() {
+
+	q.Stat.Mastered = append(q.Stat.Mastered, q.ID)
 
 	// no new quiz
 	// remove current node from the chain
-	if q.Stat.Total == q.Stat.StageCursor {
+	if q.Stat.Total == q.Stat.Cursor {
 		q.Prev.Next = q.Next
 		q.Next.Prev = q.Prev
 
 		// node removed from staged chain
 		// but no new node added
-		q.Stat.Staged--
-
-		return q
-	}
-
-	quiz := (*q.all)[q.Stat.StageCursor]
-
-	nq := Quiz{
-		Next:          q.Next,
-		Prev:          q.Prev,
-		ID:            q.Stat.StageCursor,
-		Question:      quiz.Question,
-		Options:       quiz.Options,
-		CorrectOption: quiz.CorrectOption,
-		Stat:          q.Stat,
-		all:           q.all,
-	}
-
-	// last node
-	if q.Next.ID == q.ID {
-		q = &nq
-		q.Next = &nq
-		q.Prev = &nq
-
+		q.Stat.staged--
 	} else {
-		q.Prev.Next = &nq
-		q.Next.Prev = &nq
+		n := &(*q.all)[q.Stat.Cursor]
+
+		n.Next = q.Next
+		n.Prev = q.Prev
+		n.Stat = q.Stat
+		n.Config = q.Config
+		n.all = q.all
+
+		q.Prev.Next = n
+		q.Next.Prev = n
+
+		q.Stat.Cursor++
 	}
 
-	q.Stat.StageCursor++
+	q.saveStat()
+}
 
-	return q
+// SaveStat saves current stats
+func (q *Quiz) saveStat() {
+	// var data []byte
+	data, _ := yaml.Marshal(q.Stat)
+
+	user, _ := user.Current()
+	ioutil.WriteFile(user.HomeDir+"/.quiz/stat.yaml", data, 0640)
 }
 
 // Mask masks the Quiz
 func (q *Quiz) Mask() {
-	q.Stat.Masked++
+	q.Stat.masked++
 	q.Prev.Next = q.Next
 	q.Next.Prev = q.Prev
 }
 
-// DisplayStat displays stats
-func (q *Quiz) DisplayStat() {
-	clear()
-
-	fmt.Printf("Total: %d\tStaged: %d/%d\tMastered: %d/%d [%.2f%s]\tMasked: %d/%d\n",
-		q.Stat.Total,
-		q.Stat.Staged,
-		q.Stat.Total,
-		q.Stat.Mastered,
-		q.Stat.Total,
-		float64(q.Stat.Mastered)/float64(q.Stat.Total)*100,
-		"%",
-		q.Stat.Masked,
-		q.Stat.Staged)
-
-	fmt.Println()
-}
-
 // Build builds the quiz
-func (q *Quiz) Build() Quiz {
+func (q Quiz) Build(config QuizConfig, stat QuizStat, quizes []Quiz) *Quiz {
 
-	config := QuizConfig{
-		PerStage: 3,
-	}
+	staged := make([]Quiz, 0, 50)
 
-	stat := QuizStat{}
-
-	quizes := []Quiz{
-		Quiz{
-			Question: "1. What is the Capital city of Nepal?",
-			Options: []Option{
-				"Delhi",
-				"Dhaka",
-				"Kathmandu",
-				"Nepalgunj",
-			},
-			CorrectOption: 2,
-		},
-		Quiz{
-			Question: "2. Which is the biggest lake of Nepal?",
-			Options: []Option{
-				"Rara",
-				"Foksundo",
-				"Fewatal",
-				"Se Foksundo",
-			},
-			CorrectOption: 0,
-		},
-		Quiz{
-			Question: "3. National bird of Nepal",
-			Options: []Option{
-				"Maina",
-				"Danfe",
-				"Suga",
-				"Gothri",
-			},
-			CorrectOption: 1,
-		},
-		Quiz{
-			Question: "4. 2 x 2",
-			Options: []Option{
-				"6",
-				"4",
-				"3",
-				"8",
-			},
-			CorrectOption: 1,
-		},
-		Quiz{
-			Question: "5. 2-2",
-			Options: []Option{
-				"0",
-				"1",
-				"-1",
-				"8",
-			},
-			CorrectOption: 0,
-		},
-		Quiz{
-			Question: "6. 2+2",
-			Options: []Option{
-				"0",
-				"1",
-				"-1",
-				"4",
-			},
-			CorrectOption: 3,
-		},
-	}
-
+	// fill out staged
 	for i := 0; i < config.PerStage; i++ {
-		var prev, next int
+		staged = append(staged, Quiz{})
+	}
+	// mark mastered
+	for _, i := range stat.Mastered {
+		quizes[i].isMastered = true
+	}
+
+	var prev, next int
+
+	i := 0
+	for _, q := range quizes {
+		if i == config.PerStage {
+			break
+		}
+
+		if q.isMastered {
+			continue
+		}
 
 		prev = i - 1
 		// prev first first node will be last node
@@ -234,24 +194,40 @@ func (q *Quiz) Build() Quiz {
 			next = 0
 		}
 
-		quizes[i].ID = i
-		quizes[i].Prev = &quizes[prev]
-		quizes[i].Next = &quizes[next]
-		quizes[i].Stat = &stat
-		quizes[i].all = &quizes
-		quizes[i].Config = &config
+		q.Prev = &staged[prev]
+		q.Next = &staged[next]
+		q.Stat = &stat
+		q.all = &quizes
+		q.Config = &config
+
+		staged[i] = q
+
+		i++
+		stat.staged++
 	}
 
 	stat.Total = len(quizes)
-	stat.Staged = config.PerStage
-	stat.StageCursor = stat.Staged
+	stat.Cursor = len(stat.Mastered) + stat.staged
 
-	return quizes[0]
+	return &staged[0]
 }
 
 // Advance advances the quiz to next
 func (q *Quiz) Advance() *Quiz {
+	// Next pointer needs to be returned
+	// Receiver recives the Reference Pointer in it's own Pointer
 	return q.Next
+}
+
+// AllMaskedOrMastered checks if all ethier masked or mastered
+func (q *Quiz) AllMaskedOrMastered() bool {
+	return q.Stat.staged < q.Config.PerStage &&
+		q.Stat.masked+len(q.Stat.Mastered) == q.Stat.Total
+}
+
+// ReachedMaskLimit checks if mask limit is reached
+func (q *Quiz) ReachedMaskLimit() bool {
+	return q.Stat.masked == q.Stat.staged
 }
 
 func clear() {

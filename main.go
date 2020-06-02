@@ -2,38 +2,59 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os/user"
 
 	"github.com/hive-repo/quiz/helper"
+	"github.com/ttacon/chalk"
+	"gopkg.in/yaml.v2"
 )
 
 func main() {
 
-	q := (&helper.Quiz{}).Build()
+	config := helper.QuizConfig{}
+	user, _ := user.Current()
+
+	configFile, _ := ioutil.ReadFile(user.HomeDir + "/.quiz/config.yaml")
+
+	yaml.Unmarshal([]byte(configFile), &config)
+
+	quizes := []helper.Quiz{}
+
+	quizFile, _ := ioutil.ReadFile(user.HomeDir + "/.quiz/quizes.yaml")
+
+	yaml.Unmarshal([]byte(quizFile), &quizes)
+
+	stat := helper.QuizStat{}
+	statFile, _ := ioutil.ReadFile(user.HomeDir + "/.quiz/stat.yaml")
+
+	yaml.Unmarshal([]byte(statFile), &stat)
+
+	q := (helper.Quiz{}).Build(config, stat, quizes)
 
 	for {
 
 		q.DisplayStat()
-
-		if q.Stat.Masked == q.Stat.Staged {
-			fmt.Println("All staged quizes masked or mastered!")
-			break
-		}
 
 		q.Display()
 
 		ans := q.PromptAns()
 
 		if q.IsCorrect(ans) {
-			fmt.Println("Correct")
+			fmt.Printf(" [%d] %s\n\n", ans, chalk.Green.Color("Correct!"))
 		} else {
-			fmt.Println("Incorrect! Correct answer is:", q.Options[q.CorrectOption])
+			fmt.Printf(" [%d] %s\nCorrect: [%d] %s\n\n", ans,
+				chalk.Red.Color("Incorrect!"),
+				q.CorrectOption+1,
+				q.Options[q.CorrectOption])
 		}
 
 		input := q.PromptNext()
 
-		// switch is used requires labled break
+		// if switch is used requires labled break
 		// testing if the request is to quit
 		if input == "q" {
+			fmt.Println()
 			break
 		}
 
@@ -41,9 +62,7 @@ func main() {
 		// ommiting 'n'
 		switch input {
 		case "m":
-			// mastering last node requires replaing
-			// the quiz pointer
-			q = *q.Master()
+			q.Master()
 		case "u":
 			q.Mask()
 		}
@@ -52,18 +71,25 @@ func main() {
 		// before staged and masked is compared
 		// if no new node available mastering a quiz
 		// decreases Stat.Staged
-		if q.Stat.Mastered == q.Stat.Total {
+		if len(q.Stat.Mastered) == q.Stat.Total {
 			q.DisplayStat()
 			fmt.Println("All quizes are mastered")
 			break
 		}
 
-		if q.Stat.Masked == q.Stat.Staged {
+		// mask + master exceeds the quiz
+		if q.AllMaskedOrMastered() {
 			q.DisplayStat()
-			fmt.Println("Sufficent quizes masked")
+			fmt.Println("All quiezes are either mastered or masked")
 			break
 		}
 
-		q = *q.Advance()
+		if q.ReachedMaskLimit() {
+			q.DisplayStat()
+			fmt.Println("Mask limit reached!")
+			break
+		}
+
+		q = q.Advance()
 	}
 }
