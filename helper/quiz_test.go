@@ -12,31 +12,31 @@ func TestQuiz(t *testing.T) {
 		},
 		QuizStat{},
 		[]Quiz{
-			Quiz{
+			{
 				ID:            1,
 				Question:      "2*3",
 				Options:       []Option{"4", "5", "6", "7"},
 				CorrectOption: 2,
 			},
-			Quiz{
+			{
 				ID:            2,
 				Question:      "2+3",
 				Options:       []Option{"4", "5", "6", "7"},
 				CorrectOption: 1,
 			},
-			Quiz{
+			{
 				ID:            3,
 				Question:      "2-3",
 				Options:       []Option{"1", "-1", "0", "5"},
 				CorrectOption: 1,
 			},
-			Quiz{
+			{
 				ID:            4,
 				Question:      "6/2",
 				Options:       []Option{"1", "2", "3", "4"},
 				CorrectOption: 2,
 			},
-			Quiz{
+			{
 				ID:            5,
 				Question:      "123-1",
 				Options:       []Option{"122", "123", "125", "129"},
