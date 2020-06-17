@@ -92,6 +92,7 @@ func main() {
 		question *widget.Label
 		options  *widget.Radio
 		result   *widget.Label
+		correct  *widget.Label
 		Stat     struct {
 			Total    *widget.Label
 			Staged   *widget.Label
@@ -108,18 +109,22 @@ func main() {
 		"4. " + string(q.Options[3])},
 		func(o string) {
 			fmt.Println(o)
-			if o == strconv.Itoa(q.CorrectOption + 1) + ". " + string(q.Options[q.CorrectOption]) {
+			if o == strconv.Itoa(q.CorrectOption+1)+". "+string(q.Options[q.CorrectOption]) {
 				l.result.Text = "Correct!"
 				l.result.TextStyle.Bold = true
 
 			} else {
 				l.result.Text = "Incorrect!"
 				l.result.TextStyle.Bold = true
+				l.correct.Text = "Correct Ans: " + string(q.Options[q.CorrectOption])
 			}
+
+			l.correct.Refresh()
 			l.result.Refresh()
 
 		})
 	l.result = widget.NewLabel("")
+	l.correct = widget.NewLabel("")
 
 	l.question.Text = q.Question
 	l.question.TextStyle.Bold = true
@@ -142,7 +147,10 @@ func main() {
 		),
 		widget.NewLabel("Options:   "),
 		l.options,
-		l.result,
+		widget.NewHBox(
+			l.result,
+			l.correct,
+		),
 	)
 
 	w.SetContent(widget.NewVBox(
@@ -171,6 +179,8 @@ func main() {
 				q = q.Advance()
 				l.question.Text = q.Question
 				l.question.Refresh()
+				l.correct.Text = ""
+				l.correct.Refresh()
 				l.result.Text = ""
 				l.result.Refresh()
 				l.Stat.Masked.Text = strconv.Itoa(q.Stat.Masked)
@@ -190,6 +200,8 @@ func main() {
 				l.question.Refresh()
 				l.result.Text = ""
 				l.result.Refresh()
+				l.correct.Text = ""
+				l.correct.Refresh()
 
 				l.options.Options[0] = "1. " + string(q.Options[0])
 				l.options.Options[1] = "2. " + string(q.Options[1])
@@ -220,7 +232,9 @@ func main() {
 			} else {
 				l.result.Text = "Incorrect!"
 				l.result.TextStyle.Bold = true
+				l.correct.Text = string(q.Options[q.CorrectOption])
 			}
+			l.correct.Refresh()
 			l.result.Refresh()
 
 		case "2":
@@ -233,7 +247,9 @@ func main() {
 			} else {
 				l.result.Text = "Incorrect!"
 				l.result.TextStyle.Bold = true
+				l.correct.Text = string(q.Options[q.CorrectOption])
 			}
+			l.correct.Refresh()
 			l.result.Refresh()
 		case "3":
 			o, _ := strconv.Atoi(string(k.Name))
@@ -245,7 +261,9 @@ func main() {
 			} else {
 				l.result.Text = "Incorrect!"
 				l.result.TextStyle.Bold = true
+				l.correct.Text = string(q.Options[q.CorrectOption])
 			}
+			l.correct.Refresh()
 			l.result.Refresh()
 		case "4":
 			o, _ := strconv.Atoi(string(k.Name))
@@ -257,7 +275,9 @@ func main() {
 			} else {
 				l.result.Text = "Incorrect!"
 				l.result.TextStyle.Bold = true
+				l.correct.Text = string(q.Options[q.CorrectOption])
 			}
+			l.correct.Refresh()
 			l.result.Refresh()
 		case "9":
 			q.Mask()
