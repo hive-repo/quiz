@@ -153,7 +153,7 @@ func (q *Quiz) saveStat() {
 		os.Mkdir(user.HomeDir+"/.quiz/mastered-stats", 755)
 	}
 
-	ioutil.WriteFile(user.HomeDir+"/.quiz/mastered-stats/"+time.Now().Format("2006-01-02"), []byte(strconv.Itoa(len(q.Stat.Mastered))), 0640)
+	ioutil.WriteFile(user.HomeDir+"/.quiz/mastered-stats/"+time.Now().Format("2006-01-02"), []byte(strconv.Itoa(len(q.Stat.Mastered))+"\n"), 0640)
 }
 
 // Mask masks the Quiz
