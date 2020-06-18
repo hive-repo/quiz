@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"os/user"
 	"strconv"
+	"time"
 
 	"github.com/ttacon/chalk"
 	"gopkg.in/yaml.v2"
@@ -147,6 +148,12 @@ func (q *Quiz) saveStat() {
 
 	user, _ := user.Current()
 	ioutil.WriteFile(user.HomeDir+"/.quiz/stat.yaml", data, 0640)
+
+	if _, err := os.Stat(user.HomeDir + "/.quiz/mastered-stats"); os.IsNotExist(err) {
+		os.Mkdir(user.HomeDir+"/.quiz/mastered-stats", 755)
+	}
+
+	ioutil.WriteFile(user.HomeDir+"/.quiz/mastered-stats/"+time.Now().Format("2006-01-02"), []byte(strconv.Itoa(len(q.Stat.Mastered))), 0640)
 }
 
 // Mask masks the Quiz

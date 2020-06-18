@@ -85,6 +85,7 @@ func main() {
 	statFile, _ := ioutil.ReadFile(user.HomeDir + "/.quiz/stat.yaml")
 
 	yaml.Unmarshal([]byte(statFile), &stat)
+	stat.Staged = 0
 
 	q := (helper.Quiz{}).Build(config, stat, quizes)
 
@@ -159,6 +160,11 @@ func main() {
 		widget.NewHBox(
 			widget.NewButton("Master", func() {
 				q.Master()
+				if q.AllMaskedOrMastered() || q.ReachedMaskLimit() {
+					fmt.Println("All quiezes are either mastered or masked")
+					app.Quit()
+				}
+
 				q = q.Advance()
 				l.question.Text = q.Question
 				l.question.Refresh()
@@ -176,6 +182,10 @@ func main() {
 			}),
 			widget.NewButton("Mask", func() {
 				q.Mask()
+				if q.AllMaskedOrMastered() || q.ReachedMaskLimit() {
+					fmt.Println("All quiezes are either mastered or masked")
+					app.Quit()
+				}
 				q = q.Advance()
 				l.question.Text = q.Question
 				l.question.Refresh()
@@ -195,6 +205,11 @@ func main() {
 
 			}),
 			widget.NewButton("Next", func() {
+				if q.AllMaskedOrMastered() || q.ReachedMaskLimit() {
+					fmt.Println("All quiezes are either mastered or masked")
+					app.Quit()
+				}
+
 				q = q.Advance()
 				l.question.Text = q.Question
 				l.question.Refresh()
@@ -223,6 +238,8 @@ func main() {
 		case "Q":
 			app.Quit()
 		case "1":
+			l.correct.Text = ""
+			l.correct.Refresh()
 			o, _ := strconv.Atoi(string(k.Name))
 			l.options.SetSelected("1. " + string(q.Options[o-1]))
 			if o-1 == q.CorrectOption {
@@ -238,6 +255,8 @@ func main() {
 			l.result.Refresh()
 
 		case "2":
+			l.correct.Text = ""
+			l.correct.Refresh()
 			o, _ := strconv.Atoi(string(k.Name))
 			l.options.SetSelected("2. " + string(q.Options[o-1]))
 			if o-1 == q.CorrectOption {
@@ -252,6 +271,8 @@ func main() {
 			l.correct.Refresh()
 			l.result.Refresh()
 		case "3":
+			l.correct.Text = ""
+			l.correct.Refresh()
 			o, _ := strconv.Atoi(string(k.Name))
 			l.options.SetSelected("3. " + string(q.Options[o-1]))
 			if o-1 == q.CorrectOption {
@@ -266,6 +287,8 @@ func main() {
 			l.correct.Refresh()
 			l.result.Refresh()
 		case "4":
+			l.correct.Text = ""
+			l.correct.Refresh()
 			o, _ := strconv.Atoi(string(k.Name))
 			l.options.SetSelected("4. " + string(q.Options[o-1]))
 			if o-1 == q.CorrectOption {
@@ -279,8 +302,14 @@ func main() {
 			}
 			l.correct.Refresh()
 			l.result.Refresh()
-		case "9":
+		case "9", "U":
+			l.correct.Text = ""
+			l.correct.Refresh()
 			q.Mask()
+			if q.AllMaskedOrMastered() || q.ReachedMaskLimit() {
+				fmt.Println("All quiezes are either mastered or masked")
+				app.Quit()
+			}
 			q = q.Advance()
 			l.question.Text = q.Question
 			l.question.Refresh()
@@ -295,7 +324,13 @@ func main() {
 			l.options.Options[3] = "4. " + string(q.Options[3])
 
 			l.options.Refresh()
-		case "0":
+		case "0", "M":
+			if q.AllMaskedOrMastered() || q.ReachedMaskLimit() {
+				fmt.Println("All quiezes are either mastered or masked")
+				app.Quit()
+			}
+			l.correct.Text = ""
+			l.correct.Refresh()
 			q.Master()
 			q = q.Advance()
 			l.question.Text = q.Question
@@ -312,6 +347,8 @@ func main() {
 
 			l.options.Refresh()
 		default:
+			l.correct.Text = ""
+			l.correct.Refresh()
 			q = q.Advance()
 			l.question.Text = q.Question
 			l.question.Refresh()
