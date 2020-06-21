@@ -86,6 +86,7 @@ func main() {
 
 	yaml.Unmarshal([]byte(statFile), &stat)
 	stat.Staged = 0
+	stat.Masked = 0
 
 	q := (helper.Quiz{}).Build(config, stat, quizes)
 
